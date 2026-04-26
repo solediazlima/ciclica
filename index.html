@@ -468,7 +468,7 @@ body.tab-style-c .sub-tab.on::after{content:'';position:absolute;bottom:4px;left
 .luna-day.today{border-color:var(--teal);background:var(--mint);}
 .luna-day.selected{border-color:#B577CC;background:#F5EEFA;}
 .luna-day-num{font-size:9px;font-weight:700;color:var(--text-soft);line-height:1;}
-.luna-day-ic{font-size:13px;line-height:1;}
+.luna-day-ic{font-size:12px;line-height:1;display:block;margin-bottom:2px;}
 
 /* ══ FASE LUNAR ══ */
 .luna-toggle{
@@ -599,6 +599,11 @@ body.tab-style-c .sub-tab.on::after{content:'';position:absolute;bottom:4px;left
 .hdd-ic{font-size:14px;flex-shrink:0;margin-top:1px;}
 .hdd-empty{font-size:12px;color:var(--text-hint);text-align:center;padding:16px 0;}
 </style>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" defer></script>
 </head>
 <body>
 
@@ -912,6 +917,28 @@ body.tab-style-c .sub-tab.on::after{content:'';position:absolute;bottom:4px;left
 
 
 <!-- ══ AJUSTES ══ -->
+
+<!-- ── MODAL LOGIN ── -->
+<div id="loginModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:24px;padding:32px 24px;max-width:340px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+    <div style="font-size:40px;margin-bottom:12px;">🌸</div>
+    <div style="font-family:var(--fd);font-size:24px;color:var(--teal-deep);margin-bottom:6px;">Cíclica</div>
+    <div style="font-size:13px;color:var(--text-hint);margin-bottom:28px;line-height:1.6;">Iniciá sesión para guardar tu ciclo<br>y acceder desde cualquier dispositivo</div>
+    <button id="googleLoginBtn" onclick="signInWithGoogle()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:13px 20px;border:1.5px solid #E0E0E0;border-radius:50px;background:white;cursor:pointer;font-size:14px;font-weight:700;color:#3C3C3C;font-family:var(--fb);transition:box-shadow .2s;">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+      Continuar con Google
+    </button>
+    <div style="margin-top:16px;">
+      <button onclick="continueWithoutLogin()" style="background:none;border:none;font-size:12px;color:var(--text-hint);cursor:pointer;text-decoration:underline;font-family:var(--fb);">Continuar sin cuenta (solo en este dispositivo)</button>
+    </div>
+    <div style="font-size:10px;color:var(--text-hint);margin-top:16px;line-height:1.5;opacity:.7;">Tus datos se guardan de forma segura.<br>No compartimos tu información.</div>
+  </div>
+</div>
+
+<!-- Banner sync -->
+<div id="syncBanner" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--teal);color:white;padding:10px 20px;border-radius:30px;font-size:12px;font-weight:700;font-family:var(--fb);z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.2);white-space:nowrap;">
+  ✓ Datos sincronizados
+</div>
 <div id="screen-ajustes" class="screen">
   <div class="profile-hero">
     <div style="font-size:28px;margin-bottom:6px;">⚙️</div>
@@ -929,10 +956,22 @@ body.tab-style-c .sub-tab.on::after{content:'';position:absolute;bottom:4px;left
         <div id="ajustesSecciones"></div>
       </div>
       <div class="pc-section">
+        <div class="pc-label">Paleta del diagrama</div>
+        <div style="font-size:11px;color:var(--text-hint);margin-bottom:12px;">El color de las fases en tu diagrama circular.</div>
+        <div style="display:flex;flex-direction:column;gap:8px;" id="paletaPicker"></div>
+      </div>
+      <div class="pc-section">
         <div class="pc-label">Estilo de navegación</div>
         <div style="font-size:11px;color:var(--text-hint);margin-bottom:12px;">¿Cómo se destacan las pestañas activas?</div>
         <div style="display:flex;flex-direction:column;gap:8px;" id="tabStylePicker"></div>
       </div>
+    </div>
+  </div>
+  <div class="profile-card" style="margin:0 1rem 1rem;">
+    <div class="pc-section" style="border-top:none;">
+      <div class="pc-label">Cuenta</div>
+      <div id="ajustesCuenta" style="margin-bottom:10px;font-size:12px;color:var(--text-hint);"></div>
+      <button onclick="signOut()" style="width:100%;padding:10px;border:1.5px solid var(--cream-dark);border-radius:var(--r-lg);background:white;color:var(--text-hint);font-size:12px;font-weight:700;font-family:var(--fb);cursor:pointer;">Cerrar sesión</button>
     </div>
   </div>
   <div class="scroll-pad"></div>
@@ -1210,13 +1249,57 @@ function load() {
 }
 
 // ══ HELPERS ══
+
+const PALETAS_DIAGRAMA = {
+  natural: {
+    label: 'Suave',
+    phases: [
+      {name:'Menstrual',  color:'#FFB7A1', light:'#FFF0ED', text:'#D4604A'},
+      {name:'Folicular',  color:'#F0BC66', light:'#FFF8EE', text:'#B8820A'},
+      {name:'Ovulatoria', color:'#5F9595', light:'#EEF6F5', text:'#3D7070'},
+      {name:'Lútea',      color:'#AAB8BB', light:'#F5F0FC', text:'#7A6060'},
+    ]
+  },
+  intenso: {
+    label: 'Intenso',
+    phases: [
+      {name:'Menstrual',  color:'#FF9B82', light:'#FFD0C0', text:'#C04030'},
+      {name:'Folicular',  color:'#EAA820', light:'#F5CC70', text:'#8A5A00'},
+      {name:'Ovulatoria', color:'#4A8080', light:'#A0C8C8', text:'#1E4040'},
+      {name:'Lútea',      color:'#8FAAB0', light:'#C8D8DC', text:'#3A5A5C'},
+    ]
+  },
+  solido: {
+    label: 'Sólido vibrante',
+    phases: [
+      {name:'Menstrual',  color:'#FF8A6E', light:'#FFB7A1', text:'#C04030'},
+      {name:'Folicular',  color:'#E8A030', light:'#F0BC66', text:'#8A5A00'},
+      {name:'Ovulatoria', color:'#3D7070', light:'#5F9595', text:'#1E4040'},
+      {name:'Lútea',      color:'#7A9EA0', light:'#AAB8BB', text:'#3A5A5C'},
+    ]
+  },
+  gradiente: {
+    label: 'Gradiente',
+    phases: [
+      {name:'Menstrual',  color:'#FF8A6E', light:'#FFD5C8', text:'#C04030'},
+      {name:'Folicular',  color:'#E8A030', light:'#F5D080', text:'#8A5A00'},
+      {name:'Ovulatoria', color:'#3D7070', light:'#5F9595', text:'#1E4040'},
+      {name:'Lútea',      color:'#7A9EA0', light:'#C4D7D1', text:'#3A5A5C'},
+    ]
+  }
+};
+
+function getPaleta() {
+  return PALETAS_DIAGRAMA[localStorage.getItem('jn_paleta') || 'intenso'];
+}
 function getPhase(d) {
   const mensDays = profile.mensDays || 5;
+  const pal = getPaleta().phases;
   const phases = [
-    {name:'Menstrual', days:[1, mensDays],                                color:'#FFB7A1',light:'#FFF0ED',text:'#D4604A'},
-    {name:'Folicular', days:[mensDays+1, Math.round(TOTAL*.46)],          color:'#F0BC66',light:'#FFF8EE',text:'#B8820A'},
-    {name:'Ovulatoria',days:[Math.round(TOTAL*.46)+1, Math.round(TOTAL*.61)], color:'#5F9595',light:'#EEF6F5',text:'#3D7070'},
-    {name:'Lútea',     days:[Math.round(TOTAL*.61)+1, TOTAL],             color:'#AAB8BB',light:'#F5F0FC',text:'#7A6060'},
+    {...pal[0], days:[1, mensDays]},
+    {...pal[1], days:[mensDays+1, Math.round(TOTAL*.46)]},
+    {...pal[2], days:[Math.round(TOTAL*.46)+1, Math.round(TOTAL*.61)]},
+    {...pal[3], days:[Math.round(TOTAL*.61)+1, TOTAL]},
   ];
   for(let p of phases) if(d >= p.days[0] && d <= p.days[1]) return p;
   return phases[3];
@@ -1246,7 +1329,15 @@ function drawWheel() {
     ctx.beginPath();
     ctx.moveTo(cx+iR*Math.cos(sa),cy+iR*Math.sin(sa));
     ctx.arc(cx,cy,oR,sa,ea); ctx.arc(cx,cy,iR,ea,sa,true); ctx.closePath();
-    ctx.fillStyle = isSel ? ph.color : hasData ? ph.light : ph.light+'55';
+    const palKey = localStorage.getItem('jn_paleta') || 'intenso';
+    if(palKey === 'gradiente' && !isSel) {
+      const grad = ctx.createRadialGradient(cx,cy,iR,cx,cy,oR);
+      grad.addColorStop(0, ph.color);
+      grad.addColorStop(1, ph.light);
+      ctx.fillStyle = hasData ? grad : ph.light+'66';
+    } else {
+      ctx.fillStyle = isSel ? ph.color : hasData ? ph.light : ph.light+'55';
+    }
     ctx.fill();
     if(isFert&&!isSel){ctx.strokeStyle='#5F9595';ctx.lineWidth=2.5;ctx.stroke();}
     if(isPre &&!isSel){ctx.strokeStyle='#FFB7A1';ctx.lineWidth=2;  ctx.stroke();}
@@ -1267,7 +1358,7 @@ function drawWheel() {
     ctx.restore();
   }
   const ph=getPhase(curDay);
-  ctx.beginPath(); ctx.arc(cx,cy,iR-4,0,2*Math.PI); ctx.fillStyle=ph.light; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx,cy,iR-4,0,2*Math.PI); ctx.fillStyle='#FAF7F2'; ctx.fill();
   ctx.textAlign='center'; ctx.textBaseline='middle';
   if(lunaWheelOn && cycle1Date){
     const diaDate = new Date(cycle1Date.getTime()+(curDay-1)*86400000);
@@ -1414,6 +1505,7 @@ function renderLunaCal() {
     if(dateObj.toDateString()===today.toDateString()) el.classList.add('today');
     if(dateObj.toDateString()===lunaSelDate.toDateString()) el.classList.add('selected');
     el.innerHTML = '<span class="luna-day-ic">'+fase.ic+'</span><span class="luna-day-num">'+d+'</span>';
+    el.style.cssText += 'display:flex;flex-direction:column;align-items:center;gap:2px;';
     (function(dt){ el.onclick = function(){ lunaSelDate=dt; showLunaDay(dt); renderLunaCal(); }; })(dateObj);
     grid.appendChild(el);
   }
@@ -1527,6 +1619,137 @@ function closeInfografia(e) {
     document.getElementById('infografiaModal').style.display = 'none';
 }
 // ── /INFOGRAFÍA ──
+
+// ── FIREBASE ──
+const firebaseConfig = {
+  apiKey: "AIzaSyC_0XP6uSob2Dl-Jfe2p3S2AZfYns1HslE",
+  authDomain: "ciclica-jarana.firebaseapp.com",
+  projectId: "ciclica-jarana",
+  storageBucket: "ciclica-jarana.firebasestorage.app",
+  messagingSenderId: "955564809262",
+  appId: "1:955564809262:web:99eeeafa9d41b1468793bf",
+  measurementId: "G-JL1NW1NS50"
+};
+
+let fbApp, fbAuth, fbDb, fbUser = null;
+
+function initFirebase() {
+  if(typeof firebase === 'undefined') {
+    // Firebase aún no cargó — reintentar en 500ms
+    setTimeout(initFirebase, 500);
+    return;
+  }
+  try {
+    if(!firebase.apps.length) {
+      fbApp = firebase.initializeApp(firebaseConfig);
+    } else {
+      fbApp = firebase.apps[0];
+    }
+    fbAuth = firebase.auth();
+    fbDb = firebase.firestore();
+
+    fbAuth.onAuthStateChanged(function(user) {
+      fbUser = user;
+      if(user) {
+        localStorage.setItem('jn_loggedin', '1');
+        loadFromFirestore(user.uid);
+        renderUserBadge(user);
+      }
+    });
+  } catch(e) {
+    console.warn('Firebase init error:', e);
+  }
+}
+
+function signInWithGoogle() {
+  if(!fbAuth) return;
+  const btn = document.getElementById('googleLoginBtn');
+  if(btn) btn.textContent = 'Conectando...';
+  const provider = new firebase.auth.GoogleAuthProvider();
+  fbAuth.signInWithPopup(provider).then(function(result) {
+    fbUser = result.user;
+    localStorage.setItem('jn_loggedin', '1');
+    document.getElementById('loginModal').style.display = 'none';
+    loadFromFirestore(fbUser.uid);
+    renderUserBadge(fbUser);
+    showToast('¡Bienvenida, ' + (fbUser.displayName||'').split(' ')[0] + '! 🌸');
+  }).catch(function(err) {
+    console.error(err);
+    showToast('No se pudo conectar con Google');
+    if(btn) btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg> Continuar con Google';
+  });
+}
+
+function continueWithoutLogin() {
+  document.getElementById('loginModal').style.display = 'none';
+  localStorage.setItem('jn_skip_login', '1');
+}
+
+function signOut() {
+  if(fbAuth) fbAuth.signOut();
+  fbUser = null;
+  localStorage.removeItem('jn_loggedin');
+  localStorage.removeItem('jn_skip_login');
+  showToast('Sesión cerrada');
+  // Mostrar login de nuevo
+  document.getElementById('loginModal').style.display = 'flex';
+}
+
+function renderUserBadge(user) {
+  // Actualizar perfil con foto de Google si no tiene avatar propio
+  if(user.photoURL && !profile.avatar) {
+    const badge = document.getElementById('profPhotoBadge');
+    if(badge) badge.innerHTML = '<img src="'+user.photoURL+'" style="width:60px;height:60px;border-radius:50%;object-fit:cover;">';
+  }
+}
+
+// ── FIRESTORE SYNC ──
+function saveToFirestore() {
+  if(!fbUser || !fbDb || typeof firebase === 'undefined') return;
+  const uid = fbUser.uid;
+  fbDb.collection('users').doc(uid).set({
+    profile: profile,
+    dayData: dayData,
+    cycleHistory: cycleHistory,
+    cycle1Date: cycle1Date ? cycle1Date.toISOString() : null,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true }).then(function() {
+    showSyncBanner();
+  }).catch(function(e) { console.warn('Sync error:', e); });
+}
+
+function loadFromFirestore(uid) {
+  if(!fbDb) return;
+  fbDb.collection('users').doc(uid).get().then(function(doc) {
+    if(doc.exists) {
+      const data = doc.data();
+      if(data.profile) profile = data.profile;
+      if(data.dayData) dayData = data.dayData;
+      if(data.cycleHistory) cycleHistory = data.cycleHistory;
+      if(data.cycle1Date) cycle1Date = new Date(data.cycle1Date);
+      if(typeof TOTAL !== 'undefined' && profile.cycleLen) TOTAL = profile.cycleLen;
+      recalcCurDay();
+      renderProfile();
+      showToast('Datos sincronizados ✓');
+    }
+  }).catch(function(e) { console.warn('Load error:', e); });
+}
+
+function showSyncBanner() {
+  const b = document.getElementById('syncBanner');
+  if(!b) return;
+  b.style.display = 'block';
+  setTimeout(function() { b.style.display = 'none'; }, 2500);
+}
+
+function checkLogin() {
+  const skip = localStorage.getItem('jn_skip_login');
+  const loggedin = localStorage.getItem('jn_loggedin');
+  if(!skip && !loggedin) {
+    document.getElementById('loginModal').style.display = 'flex';
+  }
+}
+// ── /FIREBASE ──
 // ── GLOSARIO ──
 const GLOSARIO = {
   'hormonas': {
@@ -4219,6 +4442,35 @@ function setMainTab(idx) {
 }
 
 
+
+function renderPaletaPicker() {
+  const wrap = document.getElementById('paletaPicker'); if(!wrap) return;
+  const current = localStorage.getItem('jn_paleta') || 'intenso';
+
+  wrap.innerHTML = '';
+  Object.entries(PALETAS_DIAGRAMA).forEach(function([key, pal]) {
+    const active = current === key;
+    const row = document.createElement('div');
+    row.style.cssText = 'border:1.5px solid '+(active?'var(--teal)':'var(--cream-dark)')+';border-radius:12px;padding:10px 12px;cursor:pointer;background:'+(active?'#EEF6F5':'white')+';display:flex;align-items:center;gap:12px;';
+
+    // Mini preview con 4 círculos de colores
+    const dots = pal.phases.map(function(p) {
+      return '<div style="width:16px;height:16px;border-radius:50%;background:'+p.color+';"></div>';
+    }).join('');
+
+    row.innerHTML =
+      '<div style="display:flex;gap:4px;">'+dots+'</div>'+
+      '<div style="font-size:12px;font-weight:700;color:'+(active?'var(--teal-deep)':'var(--text-dark)')+';">'+pal.label+'</div>'+
+      (active?'<div style="margin-left:auto;font-size:10px;color:var(--teal);font-weight:700;">✓ Activa</div>':'');
+
+    row.onclick = function() {
+      localStorage.setItem('jn_paleta', key);
+      drawWheel();
+      renderPaletaPicker();
+    };
+    wrap.appendChild(row);
+  });
+}
 function renderTabStylePicker() {
   const wrap = document.getElementById('tabStylePicker'); if(!wrap) return;
   const current = localStorage.getItem('jn_tab_style') || 'b';
@@ -4236,7 +4488,8 @@ function renderTabStylePicker() {
     row.onclick = function() {
       localStorage.setItem('jn_tab_style', opt.id);
       applyTabStyle(opt.id);
-      renderTabStylePicker();
+      renderPaletaPicker();
+  renderTabStylePicker();
     };
     wrap.appendChild(row);
   });
@@ -4249,6 +4502,7 @@ function applyTabStyle(style) {
 function renderAjustes() {
   const nm = document.getElementById('ajustesName');
   if(nm) nm.textContent = profile.name ? profile.name.split(' ')[0] : 'Ajustes';
+  renderPaletaPicker();
   renderTabStylePicker();
 
   // Secciones
@@ -4714,6 +4968,8 @@ load();
 recalcCurDay();
 setMaxDateInputs();
 applyTabStyle(localStorage.getItem('jn_tab_style')||'b');
+initFirebase();
+checkLogin();
 if(profile.name) {
   launchApp();
 } else {

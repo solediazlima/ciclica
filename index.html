@@ -604,6 +604,14 @@ body.tab-style-c .sub-tab.on::after{content:'';position:absolute;bottom:4px;left
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" defer></script>
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Cíclica">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="theme-color" content="#5F9595">
 </head>
 <body>
 
@@ -4170,7 +4178,7 @@ function obRender() {
     '<div class="ob-s">'+step.sub+'</div>'+
     step.render()+
     '<div class="ob-nav">'+
-    (obStep > 0 ? '<button class="ob-back" onclick="obGoBack()">Atrás</button>' : '')+
+    '<button class="ob-back" onclick="obGoBack()">← Atrás</button>'+
     '<button class="ob-next'+(obStep===0?' solo':'')+'" onclick="obGoNext()">'+
     (obStep < OB_STEPS.length-1 ? 'Continuar →' : '¡Empezar mi ciclo!')+
     '</button></div>';
